@@ -10,16 +10,11 @@
     "jars": [
         "jars/true-input-faker.jar"
     ],
-    "modPlugin":"com.crimes_collection.TrueInputFaker",
+    "modPlugin":"com.crimes_collection.TrueInputFakerPlugin",
     "dependencies": [
         {
             "id": "lw_lazylib",
             "name": "LazyLib",
-            # "version": "2.6" # If a specific version or higher is required, include this line
-        },
-        {
-            "id": "lunalib",
-            "name": "LunaLib",
         },
         {
             "id": "MagicLib",

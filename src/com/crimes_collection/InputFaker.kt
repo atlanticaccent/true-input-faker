@@ -330,18 +330,18 @@ data class MouseEvent(
 
     fun getX() = coords.first
 
-    fun deltaX(deltaX: Int) {
+    fun deltaX(deltaX: Int?) {
         this.deltaX = deltaX
         val (x, y, scroll) = coords
-        coords = (x + deltaX) with y with scroll
+        coords = (x + (deltaX ?: 0)) with y with scroll
     }
 
     fun getY() = coords.second
 
-    fun deltaY(deltaY: Int) {
+    fun deltaY(deltaY: Int?) {
         this.deltaY = deltaY
         val (x, y, scroll) = coords
-        coords = x with (y + deltaY) with scroll
+        coords = x with (y + (deltaY ?: 0)) with scroll
     }
 
     override fun hashCode(): Int {

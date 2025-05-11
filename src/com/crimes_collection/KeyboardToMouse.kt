@@ -6,7 +6,7 @@ import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
 
 class KeyboardToMouse : CampaignInputListener {
-    private var lastEvent: MouseEvent? = null
+    private var clickHold = false
 
     override fun getListenerInputPriority() = Int.MAX_VALUE
 
@@ -14,75 +14,60 @@ class KeyboardToMouse : CampaignInputListener {
         val inputImplWrapper = InputImplWrapper.getOrAttach()
 
         var x_coord = Mouse.getX()
+        var deltaX: Int? = null
         var y_coord = Mouse.getY()
+        var deltaY: Int? = null
         for (event in events) {
-            if (event.isMouseEvent) {
-                continue
+            var fakeEvent: MouseEvent
+            if ((event.eventValue != Keyboard.KEY_LCONTROL && event.eventValue != Keyboard.KEY_RCONTROL) && clickHold) {
+                clickHold = false
+                inputImplWrapper.addEvent(LeftClick.Up(x_coord, y_coord))
             }
-
-            var fakeEvent: MouseEvent? = null
-
             when {
-                event.isRepeat -> {
-                    val lastEvent = lastEvent
-//                    if (lastEvent?.type is Move) {
-//                        fakeEvent = Move(x_coord + (lastEvent.deltaX ?: 0), y_coord + (lastEvent.deltaY ?: 0))
-//                        event.consume()
-//                        inputImplWrapper.addEvent(fakeEvent)
-//                    }
-                }
-
-                event.isKeyDownEvent -> {
+                event.isKeyDownEvent || event.isRepeat -> {
                     fakeEvent = Move(x_coord, y_coord)
                     when (event.eventValue) {
                         Keyboard.KEY_LEFT -> {
-                            fakeEvent.deltaX(-5)
+                            deltaX = -5
                         }
 
                         Keyboard.KEY_RIGHT -> {
-                            fakeEvent.deltaX(5)
+                            deltaX = 5
                         }
 
                         Keyboard.KEY_UP -> {
-                            fakeEvent.deltaY(5)
+                            deltaY = 5
                         }
 
                         Keyboard.KEY_DOWN -> {
-                            fakeEvent.deltaY(-5)
+                            deltaY = -5
                         }
 
                         Keyboard.KEY_LCONTROL, Keyboard.KEY_RCONTROL -> {
-                            fakeEvent = LeftClick.Down(x_coord, y_coord)
+                            if (event.isRepeat) {
+                                clickHold = true
+                                continue
+                            } else {
+                                inputImplWrapper.addEvent(LeftClick.Down(x_coord, y_coord))
+                                fakeEvent = LeftClick.Up(x_coord, y_coord)
+                            }
+                            event.consume()
                         }
 
                         else -> continue
                     }
-                    event.consume()
+                    x_coord += deltaX ?: 0
+                    y_coord += deltaY ?: 0
+                    fakeEvent.deltaX(deltaX)
+                    fakeEvent.deltaY(deltaY)
                     inputImplWrapper.setCursorPosition(x_coord, y_coord)
                     inputImplWrapper.addEvent(fakeEvent)
                 }
-
-                event.isKeyUpEvent && event.eventValue == Keyboard.KEY_LCONTROL -> {
-                    when (event.eventValue) {
-                        Keyboard.KEY_LCONTROL, Keyboard.KEY_RCONTROL -> {
-                            event.consume()
-                            fakeEvent = LeftClick.Up(x_coord, y_coord)
-                            inputImplWrapper.addEvent(fakeEvent)
-                        }
-                    }
-                }
             }
-
-            lastEvent = fakeEvent
-        }
-
-        if (events.isEmpty()) {
-            val lastEvent = lastEvent
-            val type = lastEvent?.type as? MouseEvent.EventType.Click
-            if (type?.state == true) {
-                val fakeEvent = LeftClick.Up(x_coord, y_coord)
-                inputImplWrapper.addEvent(fakeEvent)
-                this.lastEvent = fakeEvent
+            if (events.isEmpty() && clickHold) {
+                clickHold = false
+                inputImplWrapper.addEvent(LeftClick.Up(x_coord, y_coord))
+                event.consume()
             }
         }
     }

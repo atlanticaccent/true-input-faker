@@ -1,5 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 
 /**
  * RECOMMENDED VARIABLES TO CHANGE.
@@ -35,7 +35,7 @@ val modAuthor = "AtlanticAccent"
 val modDescription = "Part of the Crimes Collection. Fakes inputs to Starsector at the lowest level possible. Includes Keyboard-to-Mouse Proof of Concept"
 val gameVersion = "0.98a-RC8"
 val jars = arrayOf("jars/$jarFileName")
-val modPlugin = "com.crimes_collection.TrueInputFaker"
+val modPlugin = "com.crimes_collection.TrueInputFakerPlugin"
 val isUtilityMod = false
 val masterVersionFile = "https://raw.githubusercontent.com/atlanticaccent/true-input-faker/master/$modId.version"
 val modThreadId = "00000"
@@ -44,7 +44,7 @@ val modThreadId = "00000"
 // Note: On Linux, use "${starsectorDirectory}" as core directory
 val (starsectorCoreDirectory, starsectorDirectory) = run {
     val starsectorDirectory: String
-    val os = System.getProperty("os.name").toLowerCase()
+    val os = System.getProperty("os.name").lowercase()
     when {
         os.contains("win") -> {
             starsectorDirectory = "sources/windows"
@@ -90,10 +90,10 @@ dependencies {
     // Shouldn't need to change anything in dependencies below here
     implementation(fileTree("libs") { include("*.jar") })
 
-    val kotlinVersionInLazyLib = "1.6.21"
+    val kotlinVersionInLazyLib = "2.1.0"
     // Get kotlin sdk from LazyLib during runtime, only use it here during compile time
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersionInLazyLib")
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersionInLazyLib")
+//    compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersionInLazyLib")
 }
 
 tasks {
@@ -110,7 +110,7 @@ tasks {
     }
 
     register("create-metadata-files") {
-        val version = modVersion.split(".").let { javaslang.Tuple3(it[0], it[1], it[2]) }
+        val version = modVersion.split(".").let { Triple(it[0], it[1], it[2]) }
         System.setProperty("line.separator", "\n") // Use LF instead of CRLF like a normal person
 
         if (shouldAutomaticallyCreateMetadataFiles) {
@@ -124,7 +124,7 @@ tasks {
                         "name": "$niceName",
                         "author": "$modAuthor",
                         "utility": "$isUtilityMod",
-                        "version": { "major":"${version._1}", "minor": "${version._2}", "patch": "${version._3}" },
+                        "version": { "major":"${version.first}", "minor": "${version.second}", "patch": "${version.third}" },
                         "description": "$modDescription",
                         "gameVersion": "$gameVersion",
                         "jars": [
@@ -135,11 +135,6 @@ tasks {
                             {
                                 "id": "lw_lazylib",
                                 "name": "LazyLib",
-                                # "version": "2.6" # If a specific version or higher is required, include this line
-                            },
-                            {
-                                "id": "lunalib",
-                                "name": "LunaLib",
                             },
                             {
                                 "id": "MagicLib",
@@ -173,9 +168,9 @@ tasks {
                         "modThreadId":${modThreadId},
                         "modVersion":
                         {
-                            "major":${version._1},
-                            "minor":${version._2},
-                            "patch":${version._3}
+                            "major":${version.first},
+                            "minor":${version.second},
+                            "patch":${version.third}
                         }
                     }
                 """.trimIndent()
@@ -249,7 +244,7 @@ kotlin.sourceSets.main {
 
 // Don't touch stuff below here unless you know what you're doing.
 plugins {
-    kotlin("jvm") version "1.5.31"
+    kotlin("jvm") version "2.1.0"
     java
     `java-library`
 }
@@ -258,16 +253,20 @@ version = modVersion
 
 repositories {
     maven(url = uri("$projectDir/libs"))
-    jcenter()
+    mavenCentral()
 }
 
 // Compile to Java 6 bytecode so that Starsector can use it (options are only 6 or 8)
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.6"
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+        }
+    }
 }
 
 // Compile to Java 7 bytecode so that Starsector can use it
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_7
-    targetCompatibility = JavaVersion.VERSION_1_7
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
