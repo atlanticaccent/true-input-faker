@@ -1,8 +1,7 @@
 @file:Suppress("UsePropertyAccessSyntax", "unused", "UNUSED_DESTRUCTURED_PARAMETER_ENTRY", "UNCHECKED_CAST")
 
-package com.price_of_command.reflection
+package com.crimes_collection
 
-import com.crimes_collection.TrueInputFakerPlugin
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 

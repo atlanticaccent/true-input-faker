@@ -2,7 +2,6 @@ package com.crimes_collection
 
 import com.fs.starfarer.api.EveryFrameScript
 import com.fs.starfarer.api.Global
-import com.price_of_command.reflection.ReflectionUtils
 import org.lwjgl.input.Mouse
 import org.lwjgl.opengl.InputImplementation
 import java.nio.Buffer
@@ -27,15 +26,9 @@ fun addMouseEventLogger() {
 
         override fun advance(amount: Float) {
             val coordBuf = getCoordBuffer()
-//            val event = MouseEvent(
-//                RawMouseEvent.fromByteBufferComplete(getReadBuffer()),
-//                coordBuf[0] with coordBuf[1] with coordBuf[2],
-//                getMouseBufferCopy(),
-//                MouseEvent.Other
-//            )
-//            if (event.rawMouseEvents.isNotEmpty()) {
-//                println(event.toPrettyDebugString())
-//            }
+            val event = MouseEvent(
+                coordBuf[0] with coordBuf[1] with coordBuf[2], getMouseBufferCopy(), MouseEvent.Other
+            )
         }
     })
 }
@@ -99,44 +92,30 @@ class InputImplWrapper(
     }
 
     private val events = mutableListOf<MouseEvent>()
+    private var failsafeEvent: MouseEvent? = null
     var debug = true
     var readMousePrintNull = false
     var pollMousePrintNull = false
-    var pollCount = 0
-    var clickStarted = false
+    var disabled = false
     val lock = ReentrantLock()
-
-    /**
-     * TODO:
-     * - Create fake events (have model for events in readBuffer but not coord_buffer or buttons
-     * - readBuffer is a queue of events, so prepend our events to the front OR ignore the real impl completely and just write our events normally
-     * - need to figure out the coords part of the readBuffer events
-     * - probably want to create an abstraction for coord_buffer + does it need to match the coords in readBuffer events?
-     * - buttons is simple: it's just the button all the events in readBuffer are for
-     * - IMPORTANT: for a click there needs to be a mouse up! aka buttons has a value AND readBuffer has an event with leading 0 byte
-     * - nice to have: does writing coordinates directly allow us to avoid Mouse.setCursorPosition or does it just do the same thing?
-     *   - tied to implementation somehow? assuming cursor is grabbed aka not borderless
-     *   - can we go through the Cursor class instead, and create an entirely new cursor?
-     *   - MAYBE unsetting mouse grabbed state aka setGrabbed(false) will fix it?
-     */
 
     private fun next(): MouseEvent.WriteableMouseEvent? {
         while (true) {
             val rawEvent = when (val event = events.firstOrNull()) {
                 null -> {
-                    if (clickStarted) {
-                        clickStarted = false
-                        LeftClick.Up(Mouse.getX(), Mouse.getY())
-                    }
-                    return null
+                    val event = failsafeEvent ?: return null
+                    failsafeEvent = null
+                    events.add(event)
+                    event
                 }
+
                 else -> event
             }
-            if (rawEvent.type is MouseEvent.EventType.Click) {
-                clickStarted = rawEvent.type.state
-            }
             when (val event = rawEvent.consume()) {
-                null -> events.removeFirstOrNull()
+                null -> {
+                    events.removeFirstOrNull()
+                    null
+                }
 
                 else -> return event
             }
@@ -144,18 +123,33 @@ class InputImplWrapper(
     }
 
     fun addEvent(event: MouseEvent) {
+        if (failsafeEvent?.type == event.type) {
+            failsafeEvent = null
+        }
         events.add(event)
+    }
+
+    fun addFailsafeEvent(event: MouseEvent) {
+        failsafeEvent = event
+    }
+
+    fun removeFailsafeEvent() {
+        failsafeEvent = null
     }
 
     override fun readMouse(buf: ByteBuffer) {
         lock.withLock {
+            if (disabled) {
+                events.clear()
+                inner.readMouse(buf)
+                return
+            }
             when (val event = next()) {
                 null -> {
                     readMousePrintNull.then {
                         logger().debug("readMouse event was null")
                         readMousePrintNull = false
                     }
-//                    inner.readMouse(buf)
                 }
 
                 else -> {
@@ -164,23 +158,25 @@ class InputImplWrapper(
                     }
                     readMousePrintNull = true
                     event.readMouse(buf)
+                    val (xCoord, yCoord) = event.getCoords()
+                    inner.setCursorPosition(xCoord, yCoord)
                 }
             }
         }
     }
 
     override fun pollMouse(coordBuf: IntBuffer, buttonBuf: ByteBuffer) {
-        pollCount++
         lock.withLock {
+            if (disabled) {
+                inner.pollMouse(coordBuf, buttonBuf)
+                return
+            }
             when (val event = next()) {
                 null -> {
                     pollMousePrintNull.then {
                         logger().debug("pollMouse event was null")
                         pollMousePrintNull = false
                     }
-                    (coordBuf as Buffer).clear()
-                    (buttonBuf as Buffer).clear()
-//                    inner.pollMouse(coordBuf, buttonBuf)
                 }
 
                 else -> {
@@ -270,7 +266,12 @@ data class MouseEvent(
     val buttons: ByteArray,
     val type: EventType,
     val repeatable: Boolean = true,
+    val id: Int = MouseEvent.id++
 ) {
+    companion object {
+        var id = 0
+    }
+
     private var read = false
     private var polled = false
     private val consumed: Boolean
@@ -321,6 +322,8 @@ data class MouseEvent(
                     polled = true
                 }
 
+                override fun getCoords(): Pair<Int, Int> = coords.first to coords.second
+
                 override fun getDebugString(): String = this@MouseEvent.toPrettyDebugString()
             }
         } else {
@@ -332,16 +335,24 @@ data class MouseEvent(
 
     fun deltaX(deltaX: Int?) {
         this.deltaX = deltaX
-        val (x, y, scroll) = coords
-        coords = (x + (deltaX ?: 0)) with y with scroll
+        deltaX?.let { setX(getY() + it) }
+    }
+
+    fun setX(x: Int) {
+        val (_, y, scroll) = coords
+        coords = x with y with scroll
     }
 
     fun getY() = coords.second
 
     fun deltaY(deltaY: Int?) {
         this.deltaY = deltaY
-        val (x, y, scroll) = coords
-        coords = x with (y + (deltaY ?: 0)) with scroll
+        deltaY?.let { setY(getY() + it) }
+    }
+
+    fun setY(y: Int) {
+        val (x, _, scroll) = coords
+        coords = x with y with scroll
     }
 
     override fun hashCode(): Int {
@@ -358,6 +369,8 @@ data class MouseEvent(
         fun readMouse(buf: ByteBuffer)
 
         fun pollMouse(coordBuf: IntBuffer, buttonBuf: ByteBuffer)
+
+        fun getCoords(): Pair<Int, Int>
 
         fun getDebugString(): String
     }

@@ -1,5 +1,6 @@
 package com.crimes_collection
 
+import com.crimes_collection.settings.SettingsListener
 import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global
 import java.net.URL
@@ -9,7 +10,7 @@ class TrueInputFakerPlugin : BaseModPlugin() {
     companion object {
         internal val classLoader: ReflectionLoader by lazy {
             val url: URL = try {
-                TrueInputFakerPlugin::class.java.getProtectionDomain().codeSource.location
+                TrueInputFakerPlugin::class.java.protectionDomain.codeSource.location
             } catch (e: SecurityException) {
                 try {
                     Paths.get("../mods/**/true_input_faker.jar").toUri().toURL()
@@ -19,7 +20,13 @@ class TrueInputFakerPlugin : BaseModPlugin() {
                 }
             }
 
-            ReflectionLoader(url, TrueInputFakerPlugin::class.java.getClassLoader())
+            ReflectionLoader(url, TrueInputFakerPlugin::class.java.classLoader)
+        }
+    }
+
+    override fun onApplicationLoad() {
+        if (Global.getSettings().modManager.isModEnabled("lunalib")) {
+            SettingsListener.register()
         }
     }
 

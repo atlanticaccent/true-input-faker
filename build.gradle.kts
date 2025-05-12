@@ -134,11 +134,7 @@ tasks {
                         "dependencies": [
                             {
                                 "id": "lw_lazylib",
-                                "name": "LazyLib",
-                            },
-                            {
-                                "id": "MagicLib",
-                                "name": "MagicLib",
+                                "name": "LazyLib"
                             },
                         ]
                     }
@@ -227,7 +223,7 @@ tasks {
         exclude("build")
         exclude("sources")
 
-        archiveFileName.set("price-of-command.zip")
+        archiveFileName.set("$modName.zip")
     }
 }
 

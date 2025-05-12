@@ -1,5 +1,5 @@
 {
   "plugins":{
-    "AutoContinueInator":"com.crimes_collection.MenuPlugin"
+    "TrueInputFaker":"com.crimes_collection.KeyboardToMouse"
   }
 }
