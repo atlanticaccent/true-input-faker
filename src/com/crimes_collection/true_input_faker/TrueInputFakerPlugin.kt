@@ -1,6 +1,6 @@
-package com.crimes_collection
+package com.crimes_collection.true_input_faker
 
-import com.crimes_collection.settings.SettingsListener
+import com.crimes_collection.true_input_faker.settings.SettingsListener
 import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global
 import java.net.URL
@@ -11,11 +11,11 @@ class TrueInputFakerPlugin : BaseModPlugin() {
         internal val classLoader: ReflectionLoader by lazy {
             val url: URL = try {
                 TrueInputFakerPlugin::class.java.protectionDomain.codeSource.location
-            } catch (e: SecurityException) {
+            } catch (_: SecurityException) {
                 try {
                     Paths.get("../mods/**/true_input_faker.jar").toUri().toURL()
                 } catch (ex: Exception) {
-//                    logger().error("Could not convert jar path to URL; exiting", ex)
+                    logger().error("Could not convert jar path to URL; exiting", ex)
                     throw Exception("Could not build custom classloader")
                 }
             }
@@ -28,9 +28,5 @@ class TrueInputFakerPlugin : BaseModPlugin() {
         if (Global.getSettings().modManager.isModEnabled("lunalib")) {
             SettingsListener.register()
         }
-    }
-
-    override fun onGameLoad(newGame: Boolean) {
-        Global.getSector().listenerManager.addListener(KeyboardToMouse(), true)
     }
 }

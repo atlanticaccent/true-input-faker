@@ -4,11 +4,15 @@ step_dist,Step Distance,Int,5,,Step distance in pixels each press of a movement 
 mult_mult,Multiplier Increase,Double,1.05,,When pressing and holding a directional key the step distance increases by this multiplier (roughly) each frame.,1.0,15.0,Modifiers
 max_mult,Maximum Multiplier,Double,3.0,,The maximum multiplier applied to the step distance when holding down a directional key.,,,Modifiers
 ,,Header,Keys,,,,,Keys
-key_left,Left Key,Keycode,203,,Key to move cursor [left]. Defaults to Left Arrow Key.,,,Keys
-key_right,Right Key,Keycode,205,,Key to move cursor [right]. Defaults to Right Arrow Key.,,,Keys
-key_up,Up Key,Keycode,200,,Key to move cursor [up]. Defaults to Down Arrow Key.,,,Keys
-key_down,Down Key,Keycode,208,,Key to move cursor [down]. Defaults to Up Arrow Key.,,,Keys
-key_click,Left Click Key,Keycode,41,,Key to click the [left mouse button]. Defaults to Grave/Backtick.,,,Keys
-key_click_alt,Left Click Alt Key,Keycode,196,,Alternative key to click the [left mouse button]. Defaults to Function.,,,Keys
-key_disable,Toggle Key,Keycode,42,,Double tap this key to switch between fake input from this mod and regular mouse input.,,,Keys
-key_disable_alt,Alt Toggle Key,Keycode,54,,Alternative key to double tap to switch between fake input from this mod and regular mouse input.,,,Keys
+key_left,Left Key,Keycode,203,,Key to move cursor [left]. Defaults to [Left Arrow Key].,,,Keys
+key_right,Right Key,Keycode,205,,Key to move cursor [right]. Defaults to [Right Arrow Key].,,,Keys
+key_up,Up Key,Keycode,200,,Key to move cursor [up]. Defaults to [Down Arrow Key].,,,Keys
+key_down,Down Key,Keycode,208,,Key to move cursor [down]. Defaults to [Up Arrow Key].,,,Keys
+key_click,Left Click Key,Keycode,59,,Key to click the [left mouse button]. Defaults to [F1].,,,Keys
+key_click_alt,Left Click Alt Key,Keycode,211,,Alternative key to click the [left mouse button]. Defaults to [Delete].,,,Keys
+key_rclick,Right Click Key,Keycode,60,,Key to click the [left mouse button]. Defaults to [F2].,,,Keys
+key_rclick_alt,Right Click Alt Key,Keycode,207,,Alternative key to click the [right mouse button]. Defaults to [End].,,,Keys
+key_zoom_in,Scroll Up/Zoom In,Keycode,207,,Key to [scroll up or zoom in] depending on context. Defaults to [Page Up].,,,Keys
+key_zoom_out,Scroll Down/Zoom Out,Keycode,207,,Key to [scroll down or zoom out] depending on context. Defaults to [Page Down].,,,Keys
+key_disable,Toggle Key,Keycode,42,,Double tap this key to [switch] between fake input from this mod and regular mouse input. Defaults to [Left Shift].,,,Keys
+key_disable_alt,Alt Toggle Key,Keycode,54,,Alternative key to double tap to [switch] between fake input from this mod and regular mouse input. Defaults to [Right Shift]..,,,Keys

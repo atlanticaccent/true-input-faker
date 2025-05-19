@@ -1,6 +1,6 @@
 @file:Suppress("UsePropertyAccessSyntax", "unused", "UNUSED_DESTRUCTURED_PARAMETER_ENTRY", "UNCHECKED_CAST")
 
-package com.crimes_collection
+package com.crimes_collection.true_input_faker
 
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType

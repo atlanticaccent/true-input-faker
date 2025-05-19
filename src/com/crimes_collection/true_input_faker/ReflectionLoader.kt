@@ -1,4 +1,4 @@
-package com.crimes_collection
+package com.crimes_collection.true_input_faker
 
 import java.net.URL
 import java.net.URLClassLoader

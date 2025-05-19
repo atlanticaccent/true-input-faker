@@ -10,7 +10,7 @@
     "jars": [
         "jars/true-input-faker.jar"
     ],
-    "modPlugin":"com.crimes_collection.TrueInputFakerPlugin",
+    "modPlugin":"com.crimes_collection.true_input_faker.TrueInputFakerPlugin",
     "dependencies": [
         {
             "id": "lw_lazylib",

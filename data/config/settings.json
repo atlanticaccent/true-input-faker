@@ -1,5 +1,5 @@
 {
   "plugins":{
-    "TrueInputFaker":"com.crimes_collection.KeyboardToMouse"
+    "TrueInputFaker":"com.crimes_collection.true_input_faker.KeyboardToMouse"
   }
 }
